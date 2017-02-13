@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 
+import java.io.IOException;
+import chainexception.ChainException;
+
+
 public class BufMgr extends java.lang.Object implements GlobalConst  {
 
 	/**
@@ -46,7 +50,35 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	* @param page the pointer point to the page.
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
-	public void pinPage(PageId pageno, Page page, boolean emptyPage) {
+	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException   {
+		// try {
+		// 	//throw new ChainException();
+		// }  catch (ChainException e)  {
+			
+		// } catch (IllegalArgumentException e) {
+
+		// }
+		try {
+			throw new ChainException();
+		} catch (ChainException e) {
+
+		} catch(Exception e) {
+
+		}
+
+		// try {
+
+		// } catch (Exception e) {
+
+		// }
+
+		// try {
+
+		// } catch (ChainException e) {
+
+		// } catch (Exception e) {
+
+		// }
 
 	};
 	/**
@@ -64,7 +96,9 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	*
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame*/
-	public void unpinPage(PageId pageno, boolean dirty) {};
+	public void unpinPage(PageId pageno, boolean dirty)  throws ChainException{
+
+	};
 	/**
 	* Allocate new pages.
 	* Call DB object to allocate a run of new pages and
@@ -79,7 +113,8 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	*
 	* @return the first page id of the new pages.__ null, if error.
 	*/
-	public PageId newPage(Page firstpage, int howmany) {
+	public PageId newPage(Page firstpage, int howmany) throws IOException,
+			ChainException {
 		return null;
 	};
 	/**
@@ -89,19 +124,19 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	*
 	* @param globalPageId the page number in the data base.
 	*/
-	public void freePage(PageId globalPageId) {};
+	public void freePage(PageId globalPageId) throws ChainException{};
 	/**
 	* Used to flush a particular page of the buffer pool to disk.
 	* This method calls the write_page method of the diskmgr package.
 	*
 	* @param pageid the page number in the database.
 	*/
-	public void flushPage(PageId pageid) {};
+	public void flushPage(PageId pageid) throws ChainException {};
 	/**
 	* Used to flush all dirty pages in the buffer pool to disk
 	*
 	*/
-	public void flushAllPages() {};
+	public void flushAllPages() throws ChainException {};
 	/**
 	* Returns the total number of buffer frames.
 	*/
