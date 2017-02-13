@@ -1,4 +1,7 @@
 
+package bufmgr;
+
+import diskmgr.DiskMgr;
 import global.Convert;
 import global.GlobalConst;
 import global.Minibase;
@@ -9,7 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class BufMgr implements GlobalConst  {
+
+public class BufMgr extends java.lang.Object implements GlobalConst  {
 
 	/**
 	* Create the BufMgr object.
@@ -43,7 +47,7 @@ public class BufMgr implements GlobalConst  {
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
 	public void pinPage(PageId pageno, Page page, boolean emptyPage) {
-		
+
 	};
 	/**
 	* Unpin a page specified by a pageId.
