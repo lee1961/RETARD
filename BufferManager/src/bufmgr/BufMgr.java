@@ -17,9 +17,18 @@ import java.io.IOException;
 import chainexception.ChainException;
 
 
-public class BufMgr extends java.lang.Object implements GlobalConst  {
+public class BufMgr implements GlobalConst  {
+	public int numbufs;
+	public int lookAheadSize;
 
-	/**
+	public String replacementPolicy;
+	public bufDescr[] bufferDescriptor;
+	final int HTSIZE = 227;
+	Pair[] hashTable;
+	Page page_table[];
+
+
+	/*
 	* Create the BufMgr object.
 	* Allocate pages (frames) for the buffer pool in main memory and
 	* make the buffer manage aware that the replacement policy is
@@ -30,8 +39,20 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	* @param replacementPolicy Name of the replacement policy, that parameter will be set to "MRU" (you
 	can safely ignore this parameter as you will implement only one policy)
 	*/
-	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {};
-	/**
+	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
+		//System.out.println("the person typed " + replacementPolicy);
+		this.bufferDescriptor = new bufDescr[numbufs];
+		this.numbufs = numbufs;
+		this.lookAheadSize = lookAheadSize;
+		this.replacementPolicy = replacementPolicy;
+		hashTable = new Pair[HTSIZE];
+		page_table = new Page[numbufs];
+
+		//BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
+		//BufMgr buf = null;
+		//BufMgr buf = new BufMgr(numbufs);
+	};
+	/*
 	* Pin a page.
 	* First check if this page is already in the buffer pool.
 	* If it is, increment the pin_count and return a pointer to this
@@ -51,6 +72,8 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
 	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException   {
+
+
 		// try {
 		// 	//throw new ChainException();
 		// }  catch (ChainException e)  {
@@ -58,13 +81,13 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 		// } catch (IllegalArgumentException e) {
 
 		// }
-		try {
-			throw new ChainException();
-		} catch (ChainException e) {
+		// try {
+			
+		// } catch (ChainException e) {
 
-		} catch(Exception e) {
+		// } catch(Exception e) {
 
-		}
+		// }
 
 		// try {
 
@@ -97,6 +120,7 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame*/
 	public void unpinPage(PageId pageno, boolean dirty)  throws ChainException{
+
 
 	};
 	/**
@@ -148,6 +172,28 @@ public class BufMgr extends java.lang.Object implements GlobalConst  {
 	*/
 	public int getNumUnpinned() {
 		return 2;
+	}
+
+	public int hashFunction(int value) {
+		int position = value % HTSIZE;
+		return position;
+	}
+	
+
+	class bufDescr {
+		PageId pageno;
+		int pin_count;
+		boolean dirtybit;
+		bufDescr(PageId pageno) {
+			this.pageno = pageno;
+			this.pin_count = 0;
+			this.dirtybit = false;
+		}
+	}
+
+	class Pair {
+		int page_number;
+		int frame_number;
 	}
 
 }
