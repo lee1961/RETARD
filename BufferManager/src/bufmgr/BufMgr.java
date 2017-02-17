@@ -25,7 +25,8 @@ public class BufMgr implements GlobalConst  {
 	public bufDescr[] bufferDescriptor;
 	final int HTSIZE = 227;
 	Pair[] hashTable;
-	Page page_table[];
+	Page[] bufferPool;
+	Hashtable table;
 
 
 	/*
@@ -46,7 +47,9 @@ public class BufMgr implements GlobalConst  {
 		this.lookAheadSize = lookAheadSize;
 		this.replacementPolicy = replacementPolicy;
 		hashTable = new Pair[HTSIZE];
-		page_table = new Page[numbufs];
+		bufferPool = new Page[numbufs];
+		table = new Hashtable(127);
+
 
 		//BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
 		//BufMgr buf = null;
@@ -72,17 +75,31 @@ public class BufMgr implements GlobalConst  {
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
 	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException   {
+		int retrieved_frame_number = table.find(pageno);
 
+		// to check if the page is already in the bufferPool
+		if(retrieved_frame_number == -1) {
+			/*
+				Need to add when the page is not found in the hashtable
+			*/
+		} else {
+			/*
+				
+			*/
+			bufferDescriptor[retrieved_frame_number].pin_count++;
+			page = Page[retrieved_frame_number];
+
+		}
 
 		// try {
 		// 	//throw new ChainException();
 		// }  catch (ChainException e)  {
-			
+
 		// } catch (IllegalArgumentException e) {
 
 		// }
 		// try {
-			
+
 		// } catch (ChainException e) {
 
 		// } catch(Exception e) {
@@ -111,7 +128,7 @@ public class BufMgr implements GlobalConst  {
 	* If so, this call should set the dirty bit
 	* for this frame.
 	* Further, if pin_count>0, this method should
-	* decrement it.	
+	* decrement it.
 	*If pin_count=0 before this call, throw an exception
 	* to report error.
 	*(For testing purposes, we ask you to throw
@@ -178,7 +195,7 @@ public class BufMgr implements GlobalConst  {
 		int position = value % HTSIZE;
 		return position;
 	}
-	
+
 
 	class bufDescr {
 		PageId pageno;
