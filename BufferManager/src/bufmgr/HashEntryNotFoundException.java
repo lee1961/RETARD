@@ -6,7 +6,7 @@ import chainexception.ChainException;
 
 public class HashEntryNotFoundException extends ChainException {
 
-	 public HashEntryNotFoundException() {
-
+	 public HashEntryNotFoundException(Exception e,String name) {
+        super(e,name);
     }
 }

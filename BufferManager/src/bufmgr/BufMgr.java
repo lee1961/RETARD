@@ -66,6 +66,7 @@ public class BufMgr implements GlobalConst {
 
         for (int i = 0; i < numbufs; i++) {
             bufferPool[i] = null;
+            bufferDescriptor[i] = new bufDescr();
         }
 //        for (int i = 0; i < numbufs; i++) {
 //            bufferDescriptor[i].pageno = null;
@@ -110,7 +111,7 @@ public class BufMgr implements GlobalConst {
 
 
             if (retrieved_frame_number == -1) {
-                throw new HashEntryNotFoundException();
+                throw new HashEntryNotFoundException(null,"hashentry nort found");
             } else {
                 bufferDescriptor[retrieved_frame_number].pin_count++;
                 for(int candidate_position : mru_list) {
@@ -137,16 +138,10 @@ public class BufMgr implements GlobalConst {
                         if(pageno == null) {
                             System.out.println("in here");
                         }
-                        //System.out.println("before crashing");
-                        //bufferDescriptor[i].pageno = new PageId();
-                        //PageId p_id = new PageId(pageno.pid);
+
                         bufDescr b = new bufDescr(pageno);
                         bufferDescriptor[i] = b;
-                        //bufferDescriptor[i].pageno = new bufDescr(p_id);
 
-                        //System.out.println("did i crash here");
-//                        bufferDescriptor[i].dirtybit = false;
-//                        bufferDescriptor[i].pin_count = 1;
                         directory.insert(pageno, i);
 
 
@@ -193,35 +188,6 @@ public class BufMgr implements GlobalConst {
 
         }
 
-        // try {
-        // 	//throw new ChainException();
-        // }  catch (ChainException e)  {
-
-        // } catch (IllegalArgumentException e) {
-
-        // }
-        // try {
-
-        // } catch (ChainException e) {
-
-        // } catch(Exception e) {
-
-        // }
-
-        // try {
-
-        // } catch (Exception e) {
-
-        // }
-
-        // try {
-
-        // } catch (ChainException e) {
-
-        // } catch (Exception e) {
-
-        // }
-
     }
 
     ;
@@ -247,7 +213,7 @@ public class BufMgr implements GlobalConst {
         int x = directory.find(pageno);
         System.out.println( "the x is " + x);
         if(x == -1) {
-            throw new HashEntryNotFoundException();
+            throw new HashEntryNotFoundException(null,"hashentry not found");
             // need to throw a not found excpetion
         } else {
             if(dirty == true) {
@@ -256,7 +222,7 @@ public class BufMgr implements GlobalConst {
             if(bufferDescriptor[x].pin_count == 0) {
                 System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
                 // need to throw another exeption
-                throw new PageUnpinnedException();
+                //throw new PageUnpinnedException();
             } else {
                 bufferDescriptor[x].pin_count--;
                 if(bufferDescriptor[x].pin_count == 0) {
@@ -332,7 +298,7 @@ public class BufMgr implements GlobalConst {
 
         int x= directory.find(pageid);
         if(x == -1) {
-            throw new HashEntryNotFoundException();
+            throw new HashEntryNotFoundException(null,"hash entry not fond");
         } else {
             Page p = bufferPool[x];
             try {
@@ -390,23 +356,6 @@ public class BufMgr implements GlobalConst {
     }
 
 
-    class bufDescr {
-        PageId pageno;
-        int pin_count;
-        boolean dirtybit;
-
-        bufDescr() {
-            this.pageno = null;
-            this.pin_count = 0;
-            this.dirtybit = false;
-        }
-
-        bufDescr(PageId pageno) {
-            this.pageno = pageno;
-            this.pin_count = 0;
-            this.dirtybit = false;
-        }
-    }
 
     class Pair {
         int page_number;
