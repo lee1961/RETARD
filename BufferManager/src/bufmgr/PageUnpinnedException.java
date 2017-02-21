@@ -7,7 +7,7 @@ import chainexception.ChainException;
  */
 public class PageUnpinnedException extends ChainException {
     public PageUnpinnedException() {
-
+        super();
     }
 
 

@@ -24,14 +24,19 @@ public class BufMgr implements GlobalConst {
     public int lookAheadSize;
 
     public String replacementPolicy;
-    public bufDescr[] bufferDescriptor;
+
+    bufDescr[] bufferDescriptor;
+    Page[] bufferPool;
+
     final int HTSIZE = 227;
     Pair[] hashTable;
-    Page[] bufferPool;
+
     Hashtable directory;
     Stack<Page> mru_stack;
     DiskMgr diskmgr;
     LinkedList<Integer> mru_list;
+    int counter = 0;
+    
     /*
     * Create the BufMgr object.
     * Allocate pages (frames) for the buffer pool in main memory and
@@ -45,15 +50,19 @@ public class BufMgr implements GlobalConst {
     */
     public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
         //System.out.println("the person typed " + replacementPolicy);
+
         this.bufferDescriptor = new bufDescr[numbufs];
+        this.bufferPool = new Page[numbufs];
+
+
+
         this.numbufs = numbufs;
         this.lookAheadSize = lookAheadSize;
         this.replacementPolicy = replacementPolicy;
-        hashTable = new Pair[HTSIZE];
         diskmgr = new DiskMgr();
         mru_list = new LinkedList<Integer>();
 
-        bufferPool = new Page[numbufs];
+
 
         for (int i = 0; i < numbufs; i++) {
             bufferPool[i] = null;
@@ -64,7 +73,7 @@ public class BufMgr implements GlobalConst {
 //            bufferDescriptor[i].dirtybit = false;
 //        }
         directory = new Hashtable(127);
-        mru_stack = new Stack();
+
 
         //BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
         //BufMgr buf = null;
@@ -129,12 +138,15 @@ public class BufMgr implements GlobalConst {
                             System.out.println("in here");
                         }
                         //System.out.println("before crashing");
-                        bufferDescriptor[i].pageno = new PageId();
-                        bufferDescriptor[i].pageno = pageno;
+                        //bufferDescriptor[i].pageno = new PageId();
+                        //PageId p_id = new PageId(pageno.pid);
+                        bufDescr b = new bufDescr(pageno);
+                        bufferDescriptor[i] = b;
+                        //bufferDescriptor[i].pageno = new bufDescr(p_id);
 
-                        System.out.println("did i crash here");
-                        bufferDescriptor[i].dirtybit = false;
-                        bufferDescriptor[i].pin_count = 1;
+                        //System.out.println("did i crash here");
+//                        bufferDescriptor[i].dirtybit = false;
+//                        bufferDescriptor[i].pin_count = 1;
                         directory.insert(pageno, i);
 
 
@@ -233,6 +245,7 @@ public class BufMgr implements GlobalConst {
     public void unpinPage(PageId pageno, boolean dirty) throws ChainException {
         //directory.find(pageno
         int x = directory.find(pageno);
+        System.out.println( "the x is " + x);
         if(x == -1) {
             throw new HashEntryNotFoundException();
             // need to throw a not found excpetion
@@ -241,6 +254,7 @@ public class BufMgr implements GlobalConst {
                 bufferDescriptor[x].dirtybit = true;
             }
             if(bufferDescriptor[x].pin_count == 0) {
+                System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
                 // need to throw another exeption
                 throw new PageUnpinnedException();
             } else {
