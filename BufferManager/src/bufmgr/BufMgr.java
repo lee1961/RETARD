@@ -104,90 +104,114 @@ public class BufMgr implements GlobalConst {
     */
     public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException {
 
-        int retrieved_frame_number = directory.find(pageno);
-
-
-        try {
-
-
-            if (retrieved_frame_number == -1) {
-                throw new HashEntryNotFoundException(null,"hashentry nort found");
-            } else {
-                bufferDescriptor[retrieved_frame_number].pin_count++;
-                for(int candidate_position : mru_list) {
-                    if(mru_list.get(candidate_position) == retrieved_frame_number) {
-                        mru_list.remove(candidate_position);
-                        break;
-                    }
-                }
-                page = bufferPool[retrieved_frame_number];
-            }
-
-        } catch (HashEntryNotFoundException e) {
-
-            //find the page from disk first
-            int full_flag = 0;
-
-            // check whether there is any empty frame in the bufferpool
-            for (int i = 0; i < bufferPool.length; i++) {
-                // need to change this sh** algorithm to be MRU later
-                if (bufferPool[i] == null) {
+        int retrieved_number = directory.find(pageno);
+        //System.out.println("the retrieved number is " + retrieved_number);
+        // if the value returned == -1 then it means it is not inside the hashtable
+        if(retrieved_number == -1) {
+            //System.out.println("not here ");
+            // need to find an empty spot inside the buffer pool if there is one
+            if(bufferIsFull()) {
+                // if there are no replacement candidates
+                if(mru_list.isEmpty()) {
+                    throw new HashEntryNotFoundException(null,"hashentry not found");
+                } else {
+                    // there is a replacement candidate
+                    int replacement_candidate_index = mru_list.getFirst();
+                    // if the replacemenet candidate had a dirty bit need to write it bac
                     try {
-                        Minibase.DiskManager.read_page(pageno, page);
-                        bufferPool[i] = page;
-                        if(pageno == null) {
-                            System.out.println("in here");
+                        if(bufferDescriptor[replacement_candidate_index].dirtybit == true) {
+                            Page new_page = new Page();
+                            new_page.copyPage(bufferPool[replacement_candidate_index]);
+                            Minibase.DiskManager.write_page(bufferDescriptor[replacement_candidate_index].pageno,bufferPool[replacement_candidate_index]);
                         }
 
-                        bufDescr b = new bufDescr(pageno);
-                        bufferDescriptor[i] = b;
+                    } catch (IOException ee) {
+                        ee.printStackTrace();
+                    }
 
-                        directory.insert(pageno, i);
 
+                    directory.delete(bufferDescriptor[replacement_candidate_index].pageno); // delete from the hashtable
+                    bufDescr b = new bufDescr();
+                    //PageId new_id = new PageId(pageno.pid);
+                    b.pageno = new PageId(pageno.pid);
+                    b.dirtybit = false;
+                    b.pin_count = 1;
+                    bufferDescriptor[replacement_candidate_index] = b;
+                    bufferPool[replacement_candidate_index] = page;
+                    directory.insert(pageno,replacement_candidate_index); //insert back into the hashtable
+                    try {
+                        Minibase.DiskManager.read_page(pageno,page);
 
-                        throw new IOException("hey");
-                    } catch (IOException e2) {
-                        //e2.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
 
                 }
-                if (i == bufferPool.length - 1 && bufferPool[i] != null) {
-                    full_flag = 1;
+
+            } else {
+                // if the buffer is not full
+//                System.out.println("the numbufs is " + numbufs);
+//                System.out.println("not full");
+                for(int i = 0 ; i < numbufs ; i++) {
+                    if(bufferPool[i] == null) {
+//                        System.out.println("putting pageno as " + pageno.pid);
+//                        System.out.println("putting as position " + i);
+                        bufferPool[i] = page;
+
+
+
+                        //PageId p = new PageId(pageno.pid);
+                        PageId new_id = new PageId(pageno.pid);
+                        directory.insert(new_id,i);
+                        bufDescr new_bufdescr = new bufDescr();
+                        new_bufdescr.pin_count = 1;
+                        new_bufdescr.pageno = new PageId(pageno.pid);
+                        bufferDescriptor[i] = new_bufdescr;
+                        try {
+                            Minibase.DiskManager.read_page(pageno,page);
+                            break;
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            break;
+                        }
+                    }
                 }
             }
-            // now use the MRU policy
-            if (full_flag == 1) {
-                try {
-                    if(mru_list.isEmpty()) {
-                        throw new BufferPoolExceededException();
-                    } else {
-                        int x = mru_list.getFirst();
-                        mru_list.removeFirst();
-                        if(bufferDescriptor[x].dirtybit == true) {
-                            try {
-                                Minibase.DiskManager.write_page(bufferDescriptor[x].pageno,bufferPool[x]);
-                            } catch (IOException io) {
 
-                            }
 
-                        }
-                        PageId temp_pageid = bufferDescriptor[x].pageno;
-                        directory.delete(temp_pageid);
-                        bufferPool[x] = page;
-                        bufferDescriptor[x].pageno = pageno;
-                        bufferDescriptor[x].dirtybit = false;
-                        bufferDescriptor[x].pin_count = 1;
 
-                    }
+        } else {
+            //its already inside the hashtable
+            bufferDescriptor[retrieved_number].pin_count++;
+            page = bufferPool[retrieved_number];
 
-                } catch (BufferPoolExceededException bufferexception) {
-                    page = null;
-                    bufferexception.getMessage();
+            // check whether its inside the mrulist, remove it from the list since it is no longer a candidate
+            for(int i = 0; i < mru_list.size() ; i++) {
+                if(mru_list.get(i) == retrieved_number) {
+                    mru_list.remove(i); // remove the element
+                    break;
                 }
+            }
+            try {
+                Minibase.DiskManager.read_page(pageno,page);
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
         }
 
+
+    }
+
+    public boolean bufferIsFull() {
+        for(int i = 0; i < numbufs; i++) {
+            if(this.bufferPool[i] == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     ;
@@ -210,8 +234,9 @@ public class BufMgr implements GlobalConst {
      */
     public void unpinPage(PageId pageno, boolean dirty) throws ChainException {
         //directory.find(pageno
+        //System.out.println("unpining pageno " + pageno.pid);
         int x = directory.find(pageno);
-        System.out.println( "the x is " + x);
+        //System.out.println( "is it found? " + x);
         if(x == -1) {
             throw new HashEntryNotFoundException(null,"hashentry not found");
             // need to throw a not found excpetion
@@ -220,9 +245,9 @@ public class BufMgr implements GlobalConst {
                 bufferDescriptor[x].dirtybit = true;
             }
             if(bufferDescriptor[x].pin_count == 0) {
-                System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
+                //System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
                 // need to throw another exeption
-                //throw new PageUnpinnedException();
+                throw new PageUnpinnedException();
             } else {
                 bufferDescriptor[x].pin_count--;
                 if(bufferDescriptor[x].pin_count == 0) {
@@ -281,7 +306,13 @@ public class BufMgr implements GlobalConst {
             directory.delete(globalPageId);
             bufferDescriptor[x] = null;
             bufferPool[x] = null;
-            mru_list.remove(x);
+            for(int i = 0 ; i < mru_list.size() ; i++) {
+                if(mru_list.get(i) == x) {
+                    mru_list.remove(i);
+                    break;
+                }
+            }
+
         }
 
     }
