@@ -16,6 +16,7 @@ public class Hashtable {
 
 	}
 	public int hash(int x) {
+
 		return (3 *x + 5) % this.HTSIZE;
 	}
 

@@ -244,9 +244,10 @@ class BMDriver extends TestDriver implements GlobalConst {
 				if (status == OK) {
 					if (data != (pid.pid) + 99999) {
 						status = FAIL;
+						System.out.println("the data is " + data);
 						System.err.print ("*** Read wrong data back from page " 
 								+ pid.pid + "\n");
-					}
+					} 
 				}
 
 				if (status == OK) {

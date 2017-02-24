@@ -36,7 +36,7 @@ public class BufMgr implements GlobalConst {
     DiskMgr diskmgr;
     LinkedList<Integer> mru_list;
     int counter = 0;
-    
+
     /*
     * Create the BufMgr object.
     * Allocate pages (frames) for the buffer pool in main memory and
@@ -66,14 +66,14 @@ public class BufMgr implements GlobalConst {
 
         for (int i = 0; i < numbufs; i++) {
             bufferPool[i] = null;
-            bufferDescriptor[i] = new bufDescr();
+            //bufferDescriptor[i] = new bufDescr();
         }
 //        for (int i = 0; i < numbufs; i++) {
 //            bufferDescriptor[i].pageno = null;
 //            bufferDescriptor[i].pin_count = 0;
 //            bufferDescriptor[i].dirtybit = false;
 //        }
-        directory = new Hashtable(127);
+        directory = new Hashtable(17);
 
 
         //BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
@@ -109,6 +109,7 @@ public class BufMgr implements GlobalConst {
         // if the value returned == -1 then it means it is not inside the hashtable
         if(retrieved_number == -1) {
             //System.out.println("not here ");
+
             // need to find an empty spot inside the buffer pool if there is one
             if(bufferIsFull()) {
                 // if there are no replacement candidates
@@ -116,35 +117,52 @@ public class BufMgr implements GlobalConst {
                     throw new HashEntryNotFoundException(null,"hashentry not found");
                 } else {
                     // there is a replacement candidate
-                    int replacement_candidate_index = mru_list.getFirst();
+
+
+                    int replacement_candidate_index = mru_list.getLast();
                     // if the replacemenet candidate had a dirty bit need to write it bac
-                    try {
+
                         if(bufferDescriptor[replacement_candidate_index].dirtybit == true) {
-                            Page new_page = new Page();
-                            new_page.copyPage(bufferPool[replacement_candidate_index]);
-                            Minibase.DiskManager.write_page(bufferDescriptor[replacement_candidate_index].pageno,bufferPool[replacement_candidate_index]);
+
+                            try {
+                                Minibase.DiskManager.write_page(bufferDescriptor[replacement_candidate_index].pageno,bufferPool[replacement_candidate_index]);
+                            } catch (IOException ee) {
+                                ee.printStackTrace();
+                            }
+
                         }
 
-                    } catch (IOException ee) {
-                        ee.printStackTrace();
-                    }
-
-
                     directory.delete(bufferDescriptor[replacement_candidate_index].pageno); // delete from the hashtable
+
                     bufDescr b = new bufDescr();
                     //PageId new_id = new PageId(pageno.pid);
-                    b.pageno = new PageId(pageno.pid);
+                    b.pageno = pageno;
                     b.dirtybit = false;
                     b.pin_count = 1;
-                    bufferDescriptor[replacement_candidate_index] = b;
-                    bufferPool[replacement_candidate_index] = page;
-                    directory.insert(pageno,replacement_candidate_index); //insert back into the hashtable
-                    try {
-                        Minibase.DiskManager.read_page(pageno,page);
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    bufferDescriptor[replacement_candidate_index] = b;
+
+
+                    try {
+                        bufferPool[replacement_candidate_index] = new Page();
+
+                        Minibase.DiskManager.read_page(pageno,bufferPool[replacement_candidate_index]);
+
+                        page.setPage(bufferPool[replacement_candidate_index]);
+
+
+                        // bufferPool[replacement_candidate_index] = page;
+                       //bufferPool[replacement_candidate_index] = new Page();
+//                        bufferPool[replacement_candidate_index].copyPage(page);
+
+                    } catch (IOException ee) {
+
                     }
+
+
+
+                    directory.insert(pageno,replacement_candidate_index); //insert back into the hashtable
+                    //page.setPage(bufferPool[replacement_candidate_index]);
 
                 }
 
@@ -156,19 +174,27 @@ public class BufMgr implements GlobalConst {
                     if(bufferPool[i] == null) {
 //                        System.out.println("putting pageno as " + pageno.pid);
 //                        System.out.println("putting as position " + i);
-                        bufferPool[i] = page;
+                        //Page new_page = new Page();
+                        //new_page.copyPage(page);
 
 
 
-                        //PageId p = new PageId(pageno.pid);
-                        PageId new_id = new PageId(pageno.pid);
-                        directory.insert(new_id,i);
+
+                        directory.insert(pageno,i); // insert into hashtable
+
+                        // putting the new bufdescr into there
                         bufDescr new_bufdescr = new bufDescr();
                         new_bufdescr.pin_count = 1;
-                        new_bufdescr.pageno = new PageId(pageno.pid);
+                        new_bufdescr.pageno = pageno;
+                        new_bufdescr.dirtybit = false;
                         bufferDescriptor[i] = new_bufdescr;
+                        //page.setPage(bufferPool[i]);
+                        //page = bufferPool[i];
                         try {
-                            Minibase.DiskManager.read_page(pageno,page);
+                            bufferPool[i] = new Page();
+                            Minibase.DiskManager.read_page(pageno,bufferPool[i]);
+                            //bufferPool[i] = page;
+                            page.setPage(bufferPool[i]);
                             break;
 
                         } catch (IOException e) {
@@ -184,7 +210,11 @@ public class BufMgr implements GlobalConst {
         } else {
             //its already inside the hashtable
             bufferDescriptor[retrieved_number].pin_count++;
-            page = bufferPool[retrieved_number];
+            //page = bufferPool[retrieved_number];
+            page.setPage(bufferPool[retrieved_number]);
+            //page = bufferPool[retrieved_number];
+
+
 
             // check whether its inside the mrulist, remove it from the list since it is no longer a candidate
             for(int i = 0; i < mru_list.size() ; i++) {
@@ -193,12 +223,12 @@ public class BufMgr implements GlobalConst {
                     break;
                 }
             }
-            try {
-                Minibase.DiskManager.read_page(pageno,page);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Minibase.DiskManager.read_page(pageno,page);
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
         }
 
@@ -242,6 +272,7 @@ public class BufMgr implements GlobalConst {
             // need to throw a not found excpetion
         } else {
             if(dirty == true) {
+
                 bufferDescriptor[x].dirtybit = true;
             }
             if(bufferDescriptor[x].pin_count == 0) {
@@ -278,9 +309,10 @@ public class BufMgr implements GlobalConst {
     public PageId newPage(Page firstpage, int howmany) throws IOException,
             ChainException {
         PageId new_pageId = new PageId();
-        Minibase.DiskManager.allocate_page(new_pageId,howmany);
+        new_pageId = Minibase.DiskManager.allocate_page(howmany);
         pinPage(new_pageId,firstpage,false);
         if(firstpage == null) {
+            System.out.println("crashed");
             Minibase.DiskManager.deallocate_page(new_pageId,howmany);
             return null;
         }
@@ -335,7 +367,7 @@ public class BufMgr implements GlobalConst {
             try {
                 Minibase.DiskManager.write_page(pageid,p);
 
-                
+
             } catch (IOException io) {
 
             }
@@ -374,7 +406,7 @@ public class BufMgr implements GlobalConst {
     public int getNumUnpinned() {
         int counter = 0;
         for(int i = 0 ; i < bufferDescriptor.length ; i++) {
-            if(bufferDescriptor[i].pin_count == 0) {
+            if(bufferDescriptor[i] == null) {
                counter++;
             }
         }
