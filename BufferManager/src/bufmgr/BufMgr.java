@@ -105,6 +105,7 @@ public class BufMgr implements GlobalConst {
 
 
         int retrieved_number = 0;
+        int size = directory.size();
         //System.out.println("the retrieved number is " + retrieved_number);
         // if the value returned == -1 then it means it is not inside the hashtable
         if (!directory.containsKey(pageno.pid)) {
@@ -132,7 +133,8 @@ public class BufMgr implements GlobalConst {
 //                    }
                     int replacement_candidate_index = mru_list.removeFirst();
                     int watched_pid = bufferDescriptor[replacement_candidate_index].pageno.pid;
-                    directory.remove(bufferDescriptor[replacement_candidate_index].pageno.pid);
+                    int pid_to_be_removed = bufferDescriptor[replacement_candidate_index].pageno.pid;
+                    directory.remove(pid_to_be_removed);
 //                    System.out.println("after removign....");
 //                    if (pageno.pid == 100 || pageno.pid == 101) {
 //                        for (int i : mru_list) {
@@ -165,11 +167,20 @@ public class BufMgr implements GlobalConst {
 
                     //System.out.println("you are removing " + bufferDescriptor[replacement_candidate_index].pageno);
 
-                    bufDescr b = new bufDescr();
+                    //bufDescr b = new bufDescr();
                     //PageId new_id = new PageId(pageno.pid);
-                    b.pageno = pageno;
-                    b.dirtybit = false;
+                    bufDescr b = new bufDescr();
                     b.pin_count = 1;
+                    PageId new_id = new PageId(pageno.pid);
+                    b.pageno = new PageId();
+                    //new_bufdescr.pageno = pageno;
+                    b.pageno.copyPageId(new_id);
+                    b.dirtybit = false;
+
+
+//                    b.pageno = pageno;
+//                    b.dirtybit = false;
+//                    b.pin_count = 1;
                     //bufferDescriptor[replacement_candidate_index] = null;
                     bufferDescriptor[replacement_candidate_index] = b;
                     int directory_before_remove = directory.size();
@@ -219,7 +230,10 @@ public class BufMgr implements GlobalConst {
                         // putting the new bufdescr into there
                         bufDescr new_bufdescr = new bufDescr();
                         new_bufdescr.pin_count = 1;
-                        new_bufdescr.pageno = pageno;
+                        PageId new_id = new PageId(pageno.pid);
+                        new_bufdescr.pageno = new PageId();
+                        //new_bufdescr.pageno = pageno;
+                        new_bufdescr.pageno.copyPageId(new_id);
                         new_bufdescr.dirtybit = false;
                         bufferDescriptor[i] = new_bufdescr;
 
@@ -305,6 +319,7 @@ public class BufMgr implements GlobalConst {
         //int x = directory.find(pageno);
         //System.out.println( "is it found? " + x);
         int x = 0;
+
         //System.out.println("unpinng page " + pageno.pid);
         if (!directory.containsKey(pageno.pid)) {
             throw new HashEntryNotFoundException(null, "hashentry not found");
@@ -380,10 +395,11 @@ public class BufMgr implements GlobalConst {
      */
     public void freePage(PageId globalPageId) throws ChainException {
         Minibase.DiskManager.deallocate_page(globalPageId);
-        int x = directory.get(globalPageId.pid);
+
         if (!directory.containsKey(globalPageId.pid)) {
 
         } else {
+            int x = directory.get(globalPageId.pid);
             directory.remove(globalPageId.pid);
             bufferDescriptor[x] = null;
             bufferPool[x] = null;
