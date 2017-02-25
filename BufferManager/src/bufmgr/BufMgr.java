@@ -116,7 +116,9 @@ public class BufMgr implements GlobalConst {
                // System.out.println("buffer is full at size" + bufferPool.length);
                 // if there are no replacement candidates
                 if (mru_list.isEmpty()) {
-                    throw new HashEntryNotFoundException(null, "hashentry not found");
+                    // no more room
+                    throw new BufferPoolExceededException();
+                    //throw new HashEntryNotFoundException(null, "no more space");
                 } else {
                     // there is a replacement candidate
 
@@ -374,6 +376,19 @@ public class BufMgr implements GlobalConst {
         PageId new_pageId = new PageId();
         new_pageId = Minibase.DiskManager.allocate_page(howmany);
 
+
+
+        // delete later
+        /* not supposed to do this*/
+        
+
+        int list_size = mru_list.size();
+        int x = bufferPool.length;
+        int y = bufferDescriptor.length;
+        int size = directory.size();
+        System.out.println(size);
+        //]
+
         pinPage(new_pageId, firstpage, false);
         if (firstpage == null) {
             System.out.println("crashed");
@@ -448,6 +463,13 @@ public class BufMgr implements GlobalConst {
      * Used to flush all dirty pages in the buffer pool to disk
      */
     public void flushAllPages() throws ChainException {
+        for(int i = 0 ; i < bufferDescriptor.length ; i++) {
+            if(bufferPool[i] != null) {
+                if(bufferDescriptor[i].dirtybit == true) {
+                    flushPage(bufferDescriptor[i].pageno);
+                }
+            }
+        }
     }
 
     ;
@@ -470,6 +492,11 @@ public class BufMgr implements GlobalConst {
      */
     public int getNumUnpinned() {
         int counter = 0;
+        // delete later
+        int size = directory.size();
+        int bufferDessize = bufferDescriptor.length;
+        System.out.println(size);
+        //
         for (int i = 0; i < bufferDescriptor.length; i++) {
             if (bufferDescriptor[i] == null) {
                 counter++;

@@ -12,13 +12,13 @@ public class bufDescr {
 
         bufDescr() {
             this.pageno = null;
-            this.pin_count = 0;
+            this.pin_count = 1;
             this.dirtybit = false;
         }
 
         bufDescr(PageId pageno) {
             this.pageno = pageno;
-            this.pin_count = 0;
+            this.pin_count = 1;
             this.dirtybit = false;
         }
 
