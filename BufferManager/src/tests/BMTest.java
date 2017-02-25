@@ -140,12 +140,14 @@ class BMDriver extends TestDriver implements GlobalConst {
 		Page pg = new Page(); 
 		PageId pid; 
 		PageId lastPid;
-		PageId firstPid = new PageId(); 
+		PageId firstPid = new PageId();
+        //System.out.println("firstpid is " + firstPid);
 
 		System.out.print("  - Allocate a bunch of new pages\n");
 
 		try {
 			firstPid = Minibase.BufferManager.newPage( pg, numPages );
+            System.out.println("firstpid is " + firstPid.pid);
 		}
 		catch (Exception e) {   
 			System.err.print("*** Could not allocate " + numPages);
@@ -169,6 +171,8 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		pid = new PageId();
 		lastPid = new PageId();
+//		System.out.println("the firstpid is " + firstPid.pid);
+//		System.out.println("the lastpid is " + lastPid.pid);
 
 		for ( pid.pid = firstPid.pid, lastPid.pid = pid.pid+numPages; 
 		status == OK && pid.pid < lastPid.pid; 
@@ -244,10 +248,14 @@ class BMDriver extends TestDriver implements GlobalConst {
 				if (status == OK) {
 					if (data != (pid.pid) + 99999) {
 						status = FAIL;
-						System.out.println("the data is " + data);
+						System.out.println("\npid u are reading is " + pid.pid + " and the data is " + data);
 						System.err.print ("*** Read wrong data back from page " 
 								+ pid.pid + "\n");
-					} 
+						System.out.println();
+					} else {
+						System.out.println("\n\n\nits good " + "\npid u are reading is " + pid.pid + " and the data is " + data ); 
+					}
+
 				}
 
 				if (status == OK) {
@@ -270,6 +278,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1) {
 
 			try {
+
 				Minibase.BufferManager.freePage( pid ); 
 			}
 			catch (Exception e) {
