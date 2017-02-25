@@ -112,6 +112,7 @@ public class BufMgr implements GlobalConst {
 
             // need to find an empty spot inside the buffer pool if there is one
             if (bufferIsFull()) {
+               // System.out.println("buffer is full at size" + bufferPool.length);
                 // if there are no replacement candidates
                 if (mru_list.isEmpty()) {
                     throw new HashEntryNotFoundException(null, "hashentry not found");
@@ -130,6 +131,8 @@ public class BufMgr implements GlobalConst {
 //                        System.out.println();
 //                    }
                     int replacement_candidate_index = mru_list.removeFirst();
+                    int watched_pid = bufferDescriptor[replacement_candidate_index].pageno.pid;
+                    directory.remove(bufferDescriptor[replacement_candidate_index].pageno.pid);
 //                    System.out.println("after removign....");
 //                    if (pageno.pid == 100 || pageno.pid == 101) {
 //                        for (int i : mru_list) {
@@ -138,9 +141,9 @@ public class BufMgr implements GlobalConst {
 //                        System.out.println();
 //                    }
 
-
-                    System.out.println("i will be inserting pageno " + pageno.pid);
-                    System.out.println("the replacement candidate index is " + replacement_candidate_index + " and the id is " + bufferDescriptor[replacement_candidate_index].pageno.pid);
+//                    System.out.println("\n\n\n");
+//                    System.out.println("i will be inserting pageno " + pageno.pid);
+//                    System.out.println("the replacement candidate index is " + replacement_candidate_index + " and the id is " + bufferDescriptor[replacement_candidate_index].pageno.pid);
                     //System.out.println("mru index is " + replacement_candidate_index);
                     // if the replacemenet candidate had a dirty bit need to write it bac
                     // if th
@@ -150,7 +153,7 @@ public class BufMgr implements GlobalConst {
 
                         try {
 
-                            System.out.println("before writing the index" + bufferDescriptor[replacement_candidate_index].pageno + " value is " + Convert.getIntValue(0, bufferPool[replacement_candidate_index].getpage()));
+                    //        System.out.println("before writing the pageno " + bufferDescriptor[replacement_candidate_index].pageno + ", value of the replacement candidate index is " + " " + Convert.getIntValue(0, bufferPool[replacement_candidate_index].getpage()));
                             Minibase.DiskManager.write_page(bufferDescriptor[replacement_candidate_index].pageno, bufferPool[replacement_candidate_index]);
                         } catch (IOException ee) {
                             ee.printStackTrace();
@@ -169,8 +172,9 @@ public class BufMgr implements GlobalConst {
                     b.pin_count = 1;
                     //bufferDescriptor[replacement_candidate_index] = null;
                     bufferDescriptor[replacement_candidate_index] = b;
-                    directory.remove(bufferDescriptor[replacement_candidate_index].pageno);
+                    int directory_before_remove = directory.size();
 
+                    int directory_after_remove = directory.size();
 
                     try {
                         bufferPool[replacement_candidate_index] = new Page();
@@ -178,6 +182,7 @@ public class BufMgr implements GlobalConst {
                         Minibase.DiskManager.read_page(pageno, bufferPool[replacement_candidate_index]);
 
                         page.setPage(bufferPool[replacement_candidate_index]);
+                    //    System.out.println("the new pagno that i am gonna to write is " + pageno.pid + " and the value is " + Convert.getIntValue(0,bufferPool[replacement_candidate_index].getpage()));
                         directory.put(pageno.pid, replacement_candidate_index);
 
                         // bufferPool[replacement_candidate_index] = page;
@@ -189,7 +194,7 @@ public class BufMgr implements GlobalConst {
 
                     }
 
-                    System.out.println("the pageno id inserted into the hastable is " + pageno.pid);
+             //       System.out.println("the pageno id inserted into the hastable is " + pageno.pid);
                     //directory.insert(pageno,replacement_candidate_index); //insert back into the hashtable
 
                     //page.setPage(bufferPool[replacement_candidate_index]);
@@ -206,7 +211,7 @@ public class BufMgr implements GlobalConst {
 //                        System.out.println("putting as position " + i);
                         //Page new_page = new Page();
                         //new_page.copyPage(page);
-
+                    //    System.out.println("When bufferpool is not full, inserting at index: " + i + " ,pageno.id is " + pageno.pid);
 
                         //directory.insert(pageno,i); // insert into hashtable
                         directory.put(pageno.pid, i);
@@ -218,9 +223,6 @@ public class BufMgr implements GlobalConst {
                         new_bufdescr.dirtybit = false;
                         bufferDescriptor[i] = new_bufdescr;
 
-                        if (i == 99) {
-                            System.out.println("the 99 is " + bufferDescriptor[i].pageno.pid);
-                        }
                         //page.setPage(bufferPool[i]);
                         //page = bufferPool[i];
                         try {
@@ -229,9 +231,6 @@ public class BufMgr implements GlobalConst {
                             //bufferPool[i] = page;
                             page.setPage(bufferPool[i]);
 
-                            if (i == 99) {
-                                System.out.println("the index 99 value is " + Convert.getIntValue(0, bufferPool[i].getpage()));
-                            }
 
                             break;
 
@@ -306,13 +305,13 @@ public class BufMgr implements GlobalConst {
         //int x = directory.find(pageno);
         //System.out.println( "is it found? " + x);
         int x = 0;
-        System.out.println("unpinng page " + pageno.pid);
+        //System.out.println("unpinng page " + pageno.pid);
         if (!directory.containsKey(pageno.pid)) {
             throw new HashEntryNotFoundException(null, "hashentry not found");
             // need to throw a not found excpetion
         } else {
             x = directory.get(pageno.pid);
-            System.out.println("unpinng page index is at " + x);
+            //System.out.println("unpinng page index is at " + x);
             if (dirty == true) {
                 bufferDescriptor[x].dirtybit = true;
             }
@@ -321,10 +320,17 @@ public class BufMgr implements GlobalConst {
                 // need to throw another exeption
                 throw new PageUnpinnedException();
             } else {
-                System.out.println("before decreasing index, x with pincount now is " + bufferDescriptor[x].pin_count);
+             //   System.out.println("before decreasing index, x with pincount now is " + bufferDescriptor[x].pin_count);
                 bufferDescriptor[x].pin_count--;
                 if (bufferDescriptor[x].pin_count == 0) {
-                    System.out.println("index x with pincount now is 0 is " + x);
+               //     System.out.println("index x with pincount 0 is at index: " + x + " ,pageno: " + bufferDescriptor[x].pageno.pid);
+                    try {
+                        int g = Convert.getIntValue(0,bufferPool[x].getpage());
+                 //       System.out.println("the value is " + g);
+                    } catch (IOException e) {
+
+                    }
+                    //System.out.println("the value is " + Convert.getIntValue(0,bufferPool[x].getpage()));
                     mru_list.addFirst(x);
                 }
             }
@@ -352,6 +358,7 @@ public class BufMgr implements GlobalConst {
             ChainException {
         PageId new_pageId = new PageId();
         new_pageId = Minibase.DiskManager.allocate_page(howmany);
+
         pinPage(new_pageId, firstpage, false);
         if (firstpage == null) {
             System.out.println("crashed");
