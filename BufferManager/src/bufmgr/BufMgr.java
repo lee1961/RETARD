@@ -63,7 +63,6 @@ public class BufMgr implements GlobalConst {
         mru_list = new LinkedList<Integer>();
 
 
-
         for (int i = 0; i < numbufs; i++) {
             bufferPool[i] = null;
             //bufferDescriptor[i] = new bufDescr();
@@ -73,7 +72,7 @@ public class BufMgr implements GlobalConst {
 //            bufferDescriptor[i].pin_count = 0;
 //            bufferDescriptor[i].dirtybit = false;
 //        }
-        directory = new Hashtable(17);
+        directory = new Hashtable(127);
 
 
         //BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
@@ -119,7 +118,8 @@ public class BufMgr implements GlobalConst {
                     // there is a replacement candidate
 
 
-                    int replacement_candidate_index = mru_list.getLast();
+                    int replacement_candidate_index = mru_list.removeFirst();
+                    //System.out.println("mru index is " + replacement_candidate_index);
                     // if the replacemenet candidate had a dirty bit need to write it bac
 
                         if(bufferDescriptor[replacement_candidate_index].dirtybit == true) {
@@ -156,6 +156,7 @@ public class BufMgr implements GlobalConst {
 //                        bufferPool[replacement_candidate_index].copyPage(page);
 
                     } catch (IOException ee) {
+                      ee.printStackTrace();
 
                     }
 
@@ -213,12 +214,11 @@ public class BufMgr implements GlobalConst {
             //page = bufferPool[retrieved_number];
             page.setPage(bufferPool[retrieved_number]);
             //page = bufferPool[retrieved_number];
-
-
-
+            System.out.println("\nbuffer which has alreaedy been pinned is " + retrieved_number);
             // check whether its inside the mrulist, remove it from the list since it is no longer a candidate
             for(int i = 0; i < mru_list.size() ; i++) {
                 if(mru_list.get(i) == retrieved_number) {
+                    System.out.println("if its in the mru list  removing  this " + retrieved_number + "\n");
                     mru_list.remove(i); // remove the element
                     break;
                 }
