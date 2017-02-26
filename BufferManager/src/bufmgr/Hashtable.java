@@ -38,6 +38,22 @@ public class Hashtable {
 
 	}
 
+	public boolean contain(PageId insert_page) {
+		int hash_value = hash(insert_page.pid);
+		if (hashEntries[hash_value] == null)
+			return false;
+		else
+		{
+			HashEntry entry = hashEntries[hash_value];
+			while (entry != null && !(entry.page_id.pid == insert_page.pid))
+				entry = entry.next;
+			if (entry == null)
+				return false;
+			else
+				return true;
+		}
+	}
+
 	public boolean delete(PageId insert_page) {
  		int hash_value = hash(insert_page.pid);
         if (hashEntries[hash_value] != null)
