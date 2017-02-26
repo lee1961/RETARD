@@ -409,15 +409,23 @@ public class BufMgr implements GlobalConst {
      * @param globalPageId the page number in the data base.
      */
     public void freePage(PageId globalPageId) throws ChainException {
-        Minibase.DiskManager.deallocate_page(globalPageId);
+
 
         if (!directory.containsKey(globalPageId.pid)) {
-
+            throw new HashEntryNotFoundException(null,"not found ");
         } else {
             int x = directory.get(globalPageId.pid);
+            if(bufferDescriptor[x].pin_count > 0) {
+                throw new PagePinnedException(null,"exception");
+            }
+            flushPage(globalPageId);
             directory.remove(globalPageId.pid);
             bufferDescriptor[x] = null;
             bufferPool[x] = null;
+            Minibase.DiskManager.deallocate_page(globalPageId);
+
+
+
             for (int i = 0; i < mru_list.size(); i++) {
                 if (mru_list.get(i) == x) {
                     mru_list.remove(i);
@@ -498,7 +506,7 @@ public class BufMgr implements GlobalConst {
         System.out.println(size);
         //
         for (int i = 0; i < bufferDescriptor.length; i++) {
-            if (bufferDescriptor[i] == null) {
+            if (bufferDescriptor[i] == null || bufferDescriptor[i].pin_count == 0) {
                 counter++;
             }
         }

@@ -111,12 +111,12 @@ class BMDriver extends TestDriver implements GlobalConst {
 		//The following runs all the test functions 
 
 		//Running test1() to test6()
-		if (!test1()) { _passAll = FAIL; }    
-		// if (!test2()) { _passAll = FAIL; }
-		// if (!test3()) { _passAll = FAIL; }
-		// if (!test4()) { _passAll = FAIL; }
-		// if (!test5()) { _passAll = FAIL; }
-		// if (!test6()) { _passAll = FAIL; }
+	if (!test1()) { _passAll = FAIL; }
+		 if (!test2()) { _passAll = FAIL; }
+	 if (!test3()) { _passAll = FAIL; }
+		 if (!test4()) { _passAll = FAIL; }
+		 if (!test5()) { _passAll = FAIL; }
+		 if (!test6()) { _passAll = FAIL; }
 
 		return _passAll;
 	}
@@ -451,13 +451,13 @@ class BMDriver extends TestDriver implements GlobalConst {
 			}
 		}
 
-		for ( pid.pid = firstPid.pid; pid.pid < lastPid.pid; 
+		for ( pid.pid = firstPid.pid; pid.pid < lastPid.pid;
 		pid.pid = pid.pid + 1 ) {
 			try {
 				Minibase.BufferManager.unpinPage(pid, false);
 				Minibase.BufferManager.freePage( pid );
 			}
-			catch (Exception e) { 
+			catch (Exception e) {
 				status = FAIL;
 				System.err.print ("*** Error freeing page " + pid.pid + "\n");
 				e.printStackTrace();
