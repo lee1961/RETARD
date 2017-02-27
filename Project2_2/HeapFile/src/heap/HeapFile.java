@@ -71,7 +71,7 @@ public class HeapFile
                 HFPage add = new HFPage();
                 PageId addId = Minibase.BufferManager.newPage(add,1);
                 Insert = add.insertRecord(record);
-                byte[] bytestoadd = new byte[4];
+                byte[] bytestoadd = new byte[8];
                 //Tuple tuple = new Tuple(bytestoadd,0,bytestoadd.length);
                 Convert.setIntValue(addId.pid,0,bytestoadd);
                 dir_temp.insertRecord(bytestoadd);
