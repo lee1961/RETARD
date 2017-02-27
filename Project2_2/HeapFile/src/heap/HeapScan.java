@@ -8,7 +8,7 @@ import chainexception.ChainException;
 //A heap scan is simply an iterator that traverse the file's directory
 //and data pages to return all records.
 public class HeapScan
-    implements GlobalConst
+        implements GlobalConst
 {
     HeapFile hf;
     DirPage current_dir;
@@ -20,7 +20,7 @@ public class HeapScan
     }
 
     protected void finalize()
-        throws Throwable
+            throws Throwable
     {
         close();
     }
@@ -41,7 +41,7 @@ public class HeapScan
     }
 
     public Tuple getNext(RID rid)
-    {   
+    {
         //need to consider different situations
         while(current_dir != null) {
             RID first_record = current_dir.firstRecord();
