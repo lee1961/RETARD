@@ -165,107 +165,107 @@ class HFDriver extends TestDriver implements GlobalConst
 		// insertions.  However, we're inserting fixed-length records here, and
 		// in this case the scan must return the insertion order.
 //
-//		HeapScan scan = null;
-//
-//		if ( status == OK ) {
-//			System.out.println ("  - Scan the records just inserted\n");
-//
-//			try {
-//				scan = f.openScan();
-//			}
-//			catch (Exception e) {
-//				status = FAIL;
-//				System.err.println ("*** Error opening scan\n");
-//				e.printStackTrace();
-//			}
-//
-//			if ( status == OK &&  Minibase.BufferManager.getNumUnpinned()
-//					== Minibase.BufferManager.getNumBuffers() ) {
-//				System.err.println ("*** The heap-file scan has not pinned the first page\n");
-//				status = FAIL;
-//			}
-//		}
-//
-//		if ( status == OK ) {
-//			int len, i = 0;
-//			DummyRecord rec = null;
-//			Tuple tuple = new Tuple();
-//
-//			boolean done = false;
-//			while (!done) {
-//				try {
-//					tuple = scan.getNext(rid);
-//					if (tuple == null) {
-//						done = true;
-//						break;
-//					}
-//				}
-//				catch (Exception e) {
-//					status = FAIL;
-//					e.printStackTrace();
-//				}
-//
-//				if (status == OK && !done) {
-//					try {
-//						rec = new DummyRecord(tuple);
-//					}
-//					catch (Exception e) {
-//						System.err.println (""+e);
-//						e.printStackTrace();
-//					}
-//
-//					len = tuple.getLength();
-//					if ( len != reclen ) {
-//						System.err.println ("*** Record " + i + " had unexpected length "
-//								+ len + "\n");
-//						status = FAIL;
-//						break;
-//					}
-//					else if ( Minibase.BufferManager.getNumUnpinned()
-//							== Minibase.BufferManager.getNumBuffers() ) {
-//						System.err.println ("On record " + i + ":\n");
-//						System.err.println ("*** The heap-file scan has not left its " +
-//						"page pinned\n");
-//						status = FAIL;
-//						break;
-//					}
-//					String name = ("record" + i );
-//
-//					if( (rec.ival != i)
-//							|| (rec.fval != (float)i*2.5)
-//							|| (!name.equals(rec.name)) ) {
-//						System.err.println ("*** Record " + i
-//								+ " differs from what we inserted\n");
-//						System.err.println ("rec.ival: "+ rec.ival
-//								+ " should be " + i + "\n");
-//						System.err.println ("rec.fval: "+ rec.fval
-//								+ " should be " + (i*2.5) + "\n");
-//						System.err.println ("rec.name: " + rec.name
-//								+ " should be " + name + "\n");
-//						status = FAIL;
-//						break;
-//					}
-//				}
-//				++i;
-//			}
-//
-//			//If it gets here, then the scan should be completed
-//			if (status == OK) {
-//				if ( Minibase.BufferManager.getNumUnpinned()
-//						!= Minibase.BufferManager.getNumBuffers() ) {
-//					System.err.println ("*** The heap-file scan has not unpinned " +
-//					"its page after finishing\n");
-//					status = FAIL;
-//				}
-//				else if ( i != (choice) )
-//				{
-//					status = FAIL;
-//
-//					System.err.println ("*** Scanned " + i + " records instead of "
-//							+ choice + "\n");
-//				}
-//			}
-//		}
+		HeapScan scan = null;
+
+		if ( status == OK ) {
+			System.out.println ("  - Scan the records just inserted\n");
+
+			try {
+				scan = f.openScan();
+			}
+			catch (Exception e) {
+				status = FAIL;
+				System.err.println ("*** Error opening scan\n");
+				e.printStackTrace();
+			}
+
+			if ( status == OK &&  Minibase.BufferManager.getNumUnpinned()
+					== Minibase.BufferManager.getNumBuffers() ) {
+				System.err.println ("*** The heap-file scan has not pinned the first page\n");
+				status = FAIL;
+			}
+		}
+
+		if ( status == OK ) {
+			int len, i = 0;
+			DummyRecord rec = null;
+			Tuple tuple = new Tuple();
+
+			boolean done = false;
+			while (!done) {
+				try {
+					tuple = scan.getNext(rid);
+					if (tuple == null) {
+						done = true;
+						break;
+					}
+				}
+				catch (Exception e) {
+					status = FAIL;
+					e.printStackTrace();
+				}
+
+				if (status == OK && !done) {
+					try {
+						rec = new DummyRecord(tuple);
+					}
+					catch (Exception e) {
+						System.err.println (""+e);
+						e.printStackTrace();
+					}
+
+					len = tuple.getLength();
+					if ( len != reclen ) {
+						System.err.println ("*** Record " + i + " had unexpected length "
+								+ len + "\n");
+						status = FAIL;
+						break;
+					}
+					else if ( Minibase.BufferManager.getNumUnpinned()
+							== Minibase.BufferManager.getNumBuffers() ) {
+						System.err.println ("On record " + i + ":\n");
+						System.err.println ("*** The heap-file scan has not left its " +
+						"page pinned\n");
+						status = FAIL;
+						break;
+					}
+					String name = ("record" + i );
+
+					if( (rec.ival != i)
+							|| (rec.fval != (float)i*2.5)
+							|| (!name.equals(rec.name)) ) {
+						System.err.println ("*** Record " + i
+								+ " differs from what we inserted\n");
+						System.err.println ("rec.ival: "+ rec.ival
+								+ " should be " + i + "\n");
+						System.err.println ("rec.fval: "+ rec.fval
+								+ " should be " + (i*2.5) + "\n");
+						System.err.println ("rec.name: " + rec.name
+								+ " should be " + name + "\n");
+						status = FAIL;
+						break;
+					}
+				}
+				++i;
+			}
+
+			//If it gets here, then the scan should be completed
+			if (status == OK) {
+				if ( Minibase.BufferManager.getNumUnpinned()
+						!= Minibase.BufferManager.getNumBuffers() ) {
+					System.err.println ("*** The heap-file scan has not unpinned " +
+					"its page after finishing\n");
+					status = FAIL;
+				}
+				else if ( i != (choice) )
+				{
+					status = FAIL;
+
+					System.err.println ("*** Scanned " + i + " records instead of "
+							+ choice + "\n");
+				}
+			}
+		}
 
 		if ( status == OK )
 			System.out.println ("  Test 1 completed successfully.\n");
@@ -291,128 +291,128 @@ class HFDriver extends TestDriver implements GlobalConst
 			e.printStackTrace();
 		}
 
-//		if ( status == OK ) {
-//			System.out.println ("  - Delete half the records\n");
-//			try {
-//				scan = f.openScan();
-//			}
-//			catch (Exception e) {
-//				status = FAIL;
-//				System.err.println ("*** Error opening scan\n");
-//				e.printStackTrace();
-//			}
-//		}
-//
-//		if ( status == OK ) {
-//			int i = 0;
-//			Tuple tuple = new Tuple();
-//			boolean done = false;
-//
-//			while (!done) {
-//				try {
-//					tuple = scan.getNext(rid);
-//					if (tuple == null) {
-//						done = true;
-//					}
-//				}
-//				catch (Exception e) {
-//					status = FAIL;
-//					e.printStackTrace();
-//				}
-//
-//				if (!done && status == OK) {
-//					boolean odd = true;
-//					if ( i % 2 == 1 ) odd = true;
-//					if ( i % 2 == 0 ) odd = false;
-//					if ( odd )  {       // Delete the odd-numbered ones.
-//						try {
-//							status = f.deleteRecord( rid );
-//						}
-//						catch (Exception e) {
-//							status = FAIL;
-//							System.err.println ("*** Error deleting record " + i + "\n");
-//							e.printStackTrace();
-//							break;
-//						}
-//					}
-//				}
-//				++i;
-//			}
-//		}
-//
-//		try {
-//			scan.close();
-//		} catch (ChainException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}	//  destruct scan!!!!!!!!!!!!!!!
-//		scan = null;
-//
-//		if ( status == OK && Minibase.BufferManager.getNumUnpinned()
-//				!= Minibase.BufferManager.getNumBuffers() ) {
-//
-//			System.out.println ("\nt2: in if: Number of unpinned buffers: "
-//					+ Minibase.BufferManager.getNumUnpinned()+ "\n");
-//			System.err.println ("t2: in if: getNumbfrs: "+Minibase.BufferManager.getNumBuffers() +"\n");
-//
-//			System.err.println ("*** Deletion left a page pinned\n");
-//			status = FAIL;
-//		}
-//
-//		if ( status == OK ) {
-//			System.out.println ("  - Scan the remaining records\n");
-//			try {
-//				scan = f.openScan();
-//			}
-//			catch (Exception e ) {
-//				status = FAIL;
-//				System.err.println ("*** Error opening scan\n");
-//				e.printStackTrace();
-//			}
-//		}
-//
-//		if ( status == OK ) {
-//			int i = 0;
-//			DummyRecord rec = null;
-//			Tuple tuple = new Tuple();
-//			boolean done = false;
-//
-//			while ( !done ) {
-//				try {
-//					tuple = scan.getNext(rid);
-//					if (tuple == null) {
-//						done = true;
-//					}
-//				}
-//				catch (Exception e) {
-//					status = FAIL;
-//					e.printStackTrace();
-//				}
-//
-//				if (!done && status == OK) {
-//					try {
-//						rec = new DummyRecord(tuple);
-//					}
-//					catch (Exception e) {
-//						System.err.println (""+e);
-//						e.printStackTrace();
-//					}
-//
-//					if( (rec.ival != i)  ||
-//							(rec.fval != (float)i*2.5) ) {
-//						System.err.println ("*** Record " + i
-//								+ " differs from what we inserted\n");
-//						System.err.println ("rec.ival: "+ rec.ival
-//								+ " should be " + i + "\n");
-//						System.err.println ("rec.fval: "+ rec.fval
-//								+ " should be " + (i*2.5) + "\n");
-//						status = FAIL;
-//						break;
-//					}
-//					i += 2;     // Because we deleted the odd ones...
-//				}
-//			}
-//		}
+		if ( status == OK ) {
+			System.out.println ("  - Delete half the records\n");
+			try {
+				scan = f.openScan();
+			}
+			catch (Exception e) {
+				status = FAIL;
+				System.err.println ("*** Error opening scan\n");
+				e.printStackTrace();
+			}
+		}
+
+		if ( status == OK ) {
+			int i = 0;
+			Tuple tuple = new Tuple();
+			boolean done = false;
+
+			while (!done) {
+				try {
+					tuple = scan.getNext(rid);
+					if (tuple == null) {
+						done = true;
+					}
+				}
+				catch (Exception e) {
+					status = FAIL;
+					e.printStackTrace();
+				}
+
+				if (!done && status == OK) {
+					boolean odd = true;
+					if ( i % 2 == 1 ) odd = true;
+					if ( i % 2 == 0 ) odd = false;
+					if ( odd )  {       // Delete the odd-numbered ones.
+						try {
+							status = f.deleteRecord( rid );
+						}
+						catch (Exception e) {
+							status = FAIL;
+							System.err.println ("*** Error deleting record " + i + "\n");
+							e.printStackTrace();
+							break;
+						}
+					}
+				}
+				++i;
+			}
+		}
+
+		try {
+			scan.close();
+		} catch (ChainException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}	//  destruct scan!!!!!!!!!!!!!!!
+		scan = null;
+
+		if ( status == OK && Minibase.BufferManager.getNumUnpinned()
+				!= Minibase.BufferManager.getNumBuffers() ) {
+
+			System.out.println ("\nt2: in if: Number of unpinned buffers: "
+					+ Minibase.BufferManager.getNumUnpinned()+ "\n");
+			System.err.println ("t2: in if: getNumbfrs: "+Minibase.BufferManager.getNumBuffers() +"\n");
+
+			System.err.println ("*** Deletion left a page pinned\n");
+			status = FAIL;
+		}
+
+		if ( status == OK ) {
+			System.out.println ("  - Scan the remaining records\n");
+			try {
+				scan = f.openScan();
+			}
+			catch (Exception e ) {
+				status = FAIL;
+				System.err.println ("*** Error opening scan\n");
+				e.printStackTrace();
+			}
+		}
+
+		if ( status == OK ) {
+			int i = 0;
+			DummyRecord rec = null;
+			Tuple tuple = new Tuple();
+			boolean done = false;
+
+			while ( !done ) {
+				try {
+					tuple = scan.getNext(rid);
+					if (tuple == null) {
+						done = true;
+					}
+				}
+				catch (Exception e) {
+					status = FAIL;
+					e.printStackTrace();
+				}
+
+				if (!done && status == OK) {
+					try {
+						rec = new DummyRecord(tuple);
+					}
+					catch (Exception e) {
+						System.err.println (""+e);
+						e.printStackTrace();
+					}
+
+					if( (rec.ival != i)  ||
+							(rec.fval != (float)i*2.5) ) {
+						System.err.println ("*** Record " + i
+								+ " differs from what we inserted\n");
+						System.err.println ("rec.ival: "+ rec.ival
+								+ " should be " + i + "\n");
+						System.err.println ("rec.fval: "+ rec.fval
+								+ " should be " + (i*2.5) + "\n");
+						status = FAIL;
+						break;
+					}
+					i += 2;     // Because we deleted the odd ones...
+				}
+			}
+		}
 
 		if ( status == OK )
 			System.out.println ("  Test 2 completed successfully.\n");
