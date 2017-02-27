@@ -86,6 +86,8 @@ public class HeapFile
                 int current_pid = Convert.getIntValue(0,current_byte);
                 HFPage f = new HFPage();
                 PageId pid = new PageId(current_pid);
+
+
                 Minibase.BufferManager.pinPage(pid,f,false);
                 if (f.getFreeSpace() >= recordSize) {
                     Insert = f.insertRecord(record);
