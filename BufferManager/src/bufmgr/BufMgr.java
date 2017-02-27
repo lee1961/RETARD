@@ -28,11 +28,11 @@ public class BufMgr implements GlobalConst {
     bufDescr[] bufferDescriptor;
     Page[] bufferPool;
 
-    final int HTSIZE = 227;
+    final int HTSIZE = 27;
     Pair[] hashTable;
 
     Hashtable directory;
-    Stack<Page> mru_stack;
+    //Stack<Page> mru_stack;
     DiskMgr diskmgr;
     LinkedList<Integer> mru_list;
     int counter = 0;
@@ -51,34 +51,18 @@ public class BufMgr implements GlobalConst {
     public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
         //System.out.println("the person typed " + replacementPolicy);
 
-        this.bufferDescriptor = new bufDescr[numbufs];
-        this.bufferPool = new Page[numbufs];
-
-
-
         this.numbufs = numbufs;
         this.lookAheadSize = lookAheadSize;
         this.replacementPolicy = replacementPolicy;
         diskmgr = new DiskMgr();
-        mru_list = new LinkedList<Integer>();
-
-
-
+        this.bufferDescriptor = new bufDescr[numbufs];
+        this.bufferPool = new Page[numbufs];
         for (int i = 0; i < numbufs; i++) {
             bufferPool[i] = null;
             //bufferDescriptor[i] = new bufDescr();
         }
-//        for (int i = 0; i < numbufs; i++) {
-//            bufferDescriptor[i].pageno = null;
-//            bufferDescriptor[i].pin_count = 0;
-//            bufferDescriptor[i].dirtybit = false;
-//        }
-        directory = new Hashtable(17);
-
-
-        //BufMgr buf = new BufMgr(numbufs,lookAheadSize,replacementPolicy);
-        //BufMgr buf = null;
-        //BufMgr buf = new BufMgr(numbufs);
+        mru_list = new LinkedList<Integer>();
+        directory = new Hashtable(127);
     }
 
     ;
@@ -119,7 +103,7 @@ public class BufMgr implements GlobalConst {
                     // there is a replacement candidate
 
 
-                    int replacement_candidate_index = mru_list.getLast();
+                    int replacement_candidate_index = mru_list.removeFirst();
                     // if the replacemenet candidate had a dirty bit need to write it bac
 
                         if(bufferDescriptor[replacement_candidate_index].dirtybit == true) {
@@ -271,22 +255,34 @@ public class BufMgr implements GlobalConst {
             throw new HashEntryNotFoundException(null,"hashentry not found");
             // need to throw a not found excpetion
         } else {
-            if(dirty == true) {
+            // if(dirty == true) {
 
-                bufferDescriptor[x].dirtybit = true;
-            }
-            if(bufferDescriptor[x].pin_count == 0) {
-                //System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
-                // need to throw another exeption
+            //     bufferDescriptor[x].dirtybit = true;
+            // }
+            // if(bufferDescriptor[x].pin_count == 0) {
+            //     //System.out.println( "this is " + bufferDescriptor[x].pageno.pid);
+            //     // need to throw another exeption
+            //     throw new PageUnpinnedException();
+            // } else {
+            //     bufferDescriptor[x].pin_count--;
+            //     if(bufferDescriptor[x].pin_count == 0) {
+            //         mru_list.addFirst(x);
+            //     }
+            // }
+            //IF the page is found in the buffer pool
+            if (bufferDescriptor[x].pin_count == 0) {
                 throw new PageUnpinnedException();
             } else {
                 bufferDescriptor[x].pin_count--;
-                if(bufferDescriptor[x].pin_count == 0) {
+                if (bufferDescriptor[x].pin_count == 0) {
+                    //check whether it is dirty
+                    if (dirty == true) {
+                        //write it back to the disk 
+                        bufferDescriptor[x].dirtybit = true;
+                    }
                     mru_list.addFirst(x);
                 }
             }
-
-
         }
 
     }
@@ -317,7 +313,6 @@ public class BufMgr implements GlobalConst {
             return null;
         }
         return new_pageId;
-
     }
 
     ;
@@ -330,13 +325,15 @@ public class BufMgr implements GlobalConst {
      * @param globalPageId the page number in the data base.
      */
     public void freePage(PageId globalPageId) throws ChainException {
+        //what if the page is pinned
+        //permenantly free from disk and memory
         Minibase.DiskManager.deallocate_page(globalPageId);
         int x = directory.find(globalPageId);
         if(x == -1) {
 
         } else {
             directory.delete(globalPageId);
-            bufferDescriptor[x] = null;
+            bufferDescriptor[x] = new bufferDesc();
             bufferPool[x] = null;
             for(int i = 0 ; i < mru_list.size() ; i++) {
                 if(mru_list.get(i) == x) {
@@ -358,15 +355,15 @@ public class BufMgr implements GlobalConst {
      * @param pageid the page number in the database.
      */
     public void flushPage(PageId pageid) throws ChainException {
-
+        //we just flush back to disk if it is dirty
         int x= directory.find(pageid);
         if(x == -1) {
             throw new HashEntryNotFoundException(null,"hash entry not fond");
         } else {
             Page p = bufferPool[x];
             try {
+                //check or no check does not matter
                 Minibase.DiskManager.write_page(pageid,p);
-
 
             } catch (IOException io) {
 
@@ -383,6 +380,7 @@ public class BufMgr implements GlobalConst {
      * Used to flush all dirty pages in the buffer pool to disk
      */
     public void flushAllPages() throws ChainException {
+             //just flush every page in the buffer pool
     }
 
     ;
@@ -404,6 +402,7 @@ public class BufMgr implements GlobalConst {
      * Returns the total number of unpinned buffer frames.
      */
     public int getNumUnpinned() {
+        //pages which are empty or unpin
         int counter = 0;
         for(int i = 0 ; i < bufferDescriptor.length ; i++) {
             if(bufferDescriptor[i] == null) {
@@ -414,6 +413,7 @@ public class BufMgr implements GlobalConst {
     }
 
     public int hashFunction(int value) {
+        //HASH TABLE SIZE
         int position = value % HTSIZE;
         return position;
     }
