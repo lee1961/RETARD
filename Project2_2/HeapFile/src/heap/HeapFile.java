@@ -62,6 +62,7 @@ public class HeapFile
         DirPage dir_temp = this.dir;
 
         RID Insert = null;
+        Insert = new RID();
         int recordSize = record.length;
         if (recordSize > MAX_TUPSIZE) {
             throw new SpaceNotAvailableException("Record size is greater than the size of a page.");
@@ -103,15 +104,25 @@ public class HeapFile
                 int current_pid = Convert.getIntValue(0,current_byte);
                 int current_freeSpace = Convert.getIntValue(4,current_byte);
                 // if this DataPage ID has enough space insert this record there
-                if( current_freeSpace >= (record.length + SLOT_SIZE)) {
+                if( current_freeSpace > (record.length + SLOT_SIZE)) {
 
                     PageId dataPage_pid = new PageId(current_pid);
                     HFPage current_dataPage = new HFPage();
                     current_dataPage.setCurPage(dataPage_pid);
                     Minibase.BufferManager.pinPage(dataPage_pid,current_dataPage,false);
-                    Insert = current_dataPage.insertRecord(record);
+                    Insert = new RID();
+                    Insert.copyRID( current_dataPage.insertRecord(record));
                     Minibase.BufferManager.unpinPage(dataPage_pid,true);
                     recordCount++;
+
+                    current_freeSpace = current_freeSpace - (record.length + SLOT_SIZE);
+
+                    Convert.setIntValue(current_freeSpace,4,current_byte);
+                    // I DO NOT KNOW WHY IS IT NOT UPDATING WHEN I HAVE CLEARLY UPDATED THE FREE SPACE
+                    dir_temp.updateRecord(first_record,new Tuple(current_byte,0,current_byte.length));
+
+
+                    dir_temp.insertRecord(current_byte);
                     return Insert;
                 }
                 first_record = dir.nextRecord(first_record);
