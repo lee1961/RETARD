@@ -21,5 +21,10 @@ public class Tuple{
 	public byte[] getTupleByteArray(){
 		return this.data;
 	}
+
+
+
+
+
 }
 
